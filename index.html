@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Branched Cobalt Nanostructure</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,500;1,400&display=swap">
+<style>
+/* Layout: lab-notebook spread — 3D viewer on the left, geometry sheet with inputs and calculations on the right; stacks on phones. */
+:root {
+  --bg: #f3f5f6;
+  --panel: #ffffff;
+  --ink: #14222b;
+  --muted: #5a6a74;
+  --rule: #d6dde1;
+  --trunk: #175e7f;
+  --branch: #e2702e;
+  --viewer: #e8edf0;
+  --grid: #c9d3d9;
+  --accent: #175e7f;
+  --f-display: "IBM Plex Serif", Georgia, serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1619; --panel: #162126; --ink: #e3eaee; --muted: #93a4ad; --rule: #2a3a42;
+  --trunk: #3f93bb; --branch: #f08a4b; --viewer: #111c21; --grid: #24343c; --accent: #5aa9cf; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1619; --panel: #162126; --ink: #e3eaee; --muted: #93a4ad; --rule: #2a3a42;
+  --trunk: #3f93bb; --branch: #f08a4b; --viewer: #111c21; --grid: #24343c; --accent: #5aa9cf; color-scheme: dark }
+
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 20px; }
+h1 { font-family: var(--f-display); font-weight: 500; font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.1rem); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.sub { color: var(--muted); margin: 4px 0 0; font-size: 0.95rem; }
+.tag { font-family: var(--f-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+
+.viewer { position: relative; background: var(--viewer); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; aspect-ratio: 4 / 5; max-width: 100%; min-width: 0; }
+@media (max-width: 880px) { .viewer { aspect-ratio: 1 / 1; } }
+#scene { width: 100%; height: 100%; display: block; touch-action: none; }
+.views { position: absolute; left: 12px; top: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+.views button { font: 500 0.78rem var(--f-body); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); cursor: pointer; }
+.views button[aria-pressed="true"] { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.views button:focus-visible, input:focus-visible { outline: 2px solid var(--branch); outline-offset: 2px; }
+.legend { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); background: color-mix(in srgb, var(--panel) 85%, transparent); padding: 6px 10px; border-radius: 4px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.hint { position: absolute; right: 12px; bottom: 12px; font-size: 0.72rem; color: var(--muted); font-family: var(--f-mono); }
+#scale { position: absolute; right: 12px; top: 14px; font-family: var(--f-mono); font-size: 0.75rem; color: var(--muted); text-align: right; }
+#scale .bar { height: 2px; background: var(--muted); margin-top: 3px; margin-left: auto; }
+
+.sheet { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+h2 { font-family: var(--f-body); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+.inputs label { display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem; color: var(--muted); }
+.inputs .row { display: flex; align-items: center; gap: 6px; }
+.inputs input { width: 100%; min-width: 0; font: 500 0.95rem var(--f-mono); padding: 6px 8px; border: 1px solid var(--rule); border-radius: 4px; background: var(--bg); color: var(--ink); font-variant-numeric: tabular-nums; }
+.inputs .u { font-family: var(--f-mono); font-size: 0.8rem; color: var(--muted); }
+.note { font-size: 0.82rem; color: var(--muted); margin: 8px 0 0; }
+
+.totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.totals div { padding: 12px 10px 12px 0; }
+.totals div + div { border-left: 1px solid var(--rule); padding-left: 12px; }
+.totals .k { font-size: 0.75rem; color: var(--muted); }
+.totals .v { font-family: var(--f-mono); font-size: 1.25rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.totals .v small { font-size: 0.78rem; color: var(--muted); font-weight: 400; }
+@media (max-width: 460px) { .totals { grid-template-columns: 1fr; } .totals div + div { border-left: 0; border-top: 1px solid var(--rule); padding-left: 0; } }
+
+.tbl { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 8px 7px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 0.75rem; }
+td.n { font-family: var(--f-mono); text-align: right; white-space: nowrap; }
+th.n { text-align: right; }
+td .f { font-family: var(--f-mono); font-size: 0.78rem; color: var(--muted); }
+tr.sum td { font-weight: 600; border-bottom: 0; }
+.sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+
+.eq { font-family: var(--f-mono); font-size: 0.86rem; background: var(--bg); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px; overflow-x: auto; white-space: pre; line-height: 1.7; }
+.prose p { margin: 0 0 8px; max-width: 62ch; font-size: 0.9rem; }
+.prose p:last-child { margin-bottom: 0; }
+em.v { font-family: var(--f-display); font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Branched Cobalt Nanostructure</h1>
+      <p class="sub">Trunk with four levels of four lateral branches, built from your sketch. Lam Research proposal, WP1 reference geometry.</p>
+    </div>
+    <span class="tag">Dimensions in nm · to scale</span>
+  </header>
+
+  <div class="grid">
+    <section class="viewer" aria-label="3D model of the branched nanostructure">
+      <canvas id="scene"></canvas>
+      <div class="views" role="group" aria-label="Camera view">
+        <button type="button" id="v3d" aria-pressed="true">3D</button>
+        <button type="button" id="vfront" aria-pressed="false">Front</button>
+        <button type="button" id="vtop" aria-pressed="false">Top</button>
+        <button type="button" id="vtip" aria-pressed="false">Branch close-up</button>
+      </div>
+      <div id="scale"><span id="scaleLabel">20 nm</span><div class="bar" id="scaleBar" style="width:60px"></div></div>
+      <div class="legend"><span><i style="background:var(--trunk)"></i>Trunk</span><span><i style="background:var(--branch)"></i>Branches</span></div>
+      <div class="hint">drag · scroll to zoom</div>
+    </section>
+
+    <section class="sheet">
+      <div>
+        <h2>Dimensions</h2>
+        <div class="inputs">
+          <label for="Dt">Trunk diameter<span class="row"><input id="Dt" type="number" step="0.5" min="1" value="20"><span class="u">nm</span></span></label>
+          <label for="Lt">Trunk length<span class="row"><input id="Lt" type="number" step="1" min="10" value="100"><span class="u">nm</span></span></label>
+          <label for="Db">Branch diameter<span class="row"><input id="Db" type="number" step="0.1" min="0.1" value="2"><span class="u">nm</span></span></label>
+          <label for="Lb">Branch length<span class="row"><input id="Lb" type="number" step="0.5" min="0.1" value="5"><span class="u">nm</span></span></label>
+        </div>
+        <p class="note">Levels sit at 20.5, 37.8, 54.4 and 70.8% of the trunk length from the open end, as in the sketch, with 4 branches per level at 90°. Branch length is measured from the trunk wall.</p>
+      </div>
+
+      <div>
+        <h2>Totals</h2>
+        <div class="totals">
+          <div><div class="k">Volume</div><div class="v" id="tV">—</div></div>
+          <div><div class="k">Surface area</div><div class="v" id="tA">—</div></div>
+          <div><div class="k">Area / volume</div><div class="v" id="tR">—</div></div>
+        </div>
+      </div>
+
+      <div>
+        <h2>Breakdown</h2>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Element</th><th class="n">Volume (nm³)</th><th class="n">Area (nm²)</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h2>Formulas</h2>
+        <div class="eq" id="eq"></div>
+      </div>
+
+      <div class="prose">
+        <h2>What it means for filling</h2>
+        <div id="meaning"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(() => {
+  const LEVELS = [0.205, 0.378, 0.544, 0.708];   // fraction of trunk length from the open (top) end
+  const PER_LEVEL = 4;
+  const F = 96485, RHO = 8.90, M = 58.93, NE = 2;  // cobalt
+  const $ = id => document.getElementById(id);
+  const fmt = (x, d = 1) => x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const sci = x => { const e = Math.floor(Math.log10(Math.abs(x))); return (x / 10 ** e).toFixed(2) + ' × 10' + String(e).replace('-', '⁻').replace(/\d/g, c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[c]); };
+
+  function read() {
+    const g = id => Math.max(parseFloat($(id).value) || 0, 0.01);
+    return { Dt: g('Dt'), Lt: g('Lt'), Db: g('Db'), Lb: g('Lb') };
+  }
+
+  // ---------- calculations ----------
+  function compute(p) {
+    const R = p.Dt / 2, r = Math.min(p.Db / 2, R * 0.999), L = p.Lt, l = p.Lb, n = LEVELS.length * PER_LEVEL;
+    const Vt = Math.PI * R * R * L;
+    const Alat = 2 * Math.PI * R * L, Aend = Math.PI * R * R;
+    const Vb = Math.PI * r * r * l, Ablat = 2 * Math.PI * r * l, Atip = Math.PI * r * r;
+    // junction on the curved trunk wall (numerical, small)
+    const N = 400; let dV = 0, foot = 0;
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      const y = -r + (i + 0.5) * 2 * r / N, z = -r + (j + 0.5) * 2 * r / N;
+      if (y * y + z * z > r * r) continue;
+      const dA = (2 * r / N) ** 2;
+      dV += (R - Math.sqrt(R * R - y * y)) * dA;
+      foot += R / Math.sqrt(R * R - y * y) * dA;
+    }
+    let dLat = 0; const K = 2000;
+    for (let k = 0; k < K; k++) { const c = r * Math.cos(2 * Math.PI * (k + 0.5) / K); dLat += (R - Math.sqrt(R * R - c * c)) * r * 2 * Math.PI / K; }
+    const V = Vt + n * (Vb + dV);
+    const A = Alat + 2 * Aend + n * (Ablat + dLat + Atip - foot);
+    const Q = NE * F * (RHO / M) * V * 1e-21; // nm³ → cm³
+    return { R, r, L, l, n, Vt, Alat, Aend, Vb, Ablat, Atip, dV, foot, dLat, V, A, Q };
+  }
+
+  function render(c) {
+    $('tV').innerHTML = fmt(c.V, 0) + ' <small>nm³</small>';
+    $('tA').innerHTML = fmt(c.A, 0) + ' <small>nm²</small>';
+    $('tR').innerHTML = fmt(c.A / c.V, 3) + ' <small>nm⁻¹</small>';
+    const tr = 'var(--trunk)', br = 'var(--branch)';
+    const nb = c.n;
+    $('rows').innerHTML = [
+      [tr, 'Trunk, lateral wall', '2πRL', null, c.Alat],
+      [tr, 'Trunk, top and bottom faces', '2 × πR²', null, 2 * c.Aend],
+      [tr, 'Trunk body', 'πR²L', c.Vt, null],
+      [br, `Branch walls (${nb} ×)`, `${nb} × 2πrl`, null, nb * c.Ablat],
+      [br, `Branch tips (${nb} ×)`, `${nb} × πr²`, null, nb * c.Atip],
+      [br, `Branch bodies (${nb} ×)`, `${nb} × πr²l`, nb * c.Vb, null],
+      [tr, `Junction openings removed (${nb} ×)`, 'footprint on curved wall', null, -nb * c.foot],
+      [br, 'Curved-wall junction fill', 'numerical, ' + nb + ' ×', nb * c.dV, nb * c.dLat],
+    ].map(([s, name, f, v, a]) => `<tr><td><span class="sw" style="background:${s}"></span>${name}<br><span class="f">${f}</span></td><td class="n">${v == null ? '' : fmt(v, 2)}</td><td class="n">${a == null ? '' : fmt(a, 2)}</td></tr>`).join('') +
+      `<tr class="sum"><td>Total</td><td class="n">${fmt(c.V, 1)}</td><td class="n">${fmt(c.A, 1)}</td></tr>`;
+
+    $('eq').textContent =
+`R = ${fmt(c.R, 2)} nm   L = ${fmt(c.L, 1)} nm   r = ${fmt(c.r, 2)} nm   l = ${fmt(c.l, 2)} nm   n = ${nb}
+
+V = πR²L + n·πr²l (+ junction)
+  = ${fmt(c.Vt, 1)} + ${nb}·${fmt(c.Vb, 3)} (+ ${fmt(nb * c.dV, 2)})
+  = ${fmt(c.V, 1)} nm³
+
+A = 2πRL + 2πR² + n·(2πrl + πr² − A_foot) (+ junction)
+  = ${fmt(c.Alat, 1)} + ${fmt(2 * c.Aend, 1)} + ${nb}·(${fmt(c.Ablat, 3)} + ${fmt(c.Atip, 3)} − ${fmt(c.foot, 3)}) (+ ${fmt(nb * c.dLat, 2)})
+  = ${fmt(c.A, 1)} nm²`;
+
+    const vf = nb * c.Vb / c.V * 100, af = nb * (c.Ablat + c.Atip) / c.A * 100;
+    const wetted = c.A - c.Aend;
+    $('meaning').innerHTML =
+      `<p>The ${nb} branches hold <b>${fmt(vf, 2)}%</b> of the volume but <b>${fmt(af, 1)}%</b> of the surface. Filling the trunk and leaving every branch empty would still pass ${fmt(100 - vf, 1)}% of the fill charge, so the charge balance used in the 2014 study cannot tell whether the tips filled. Cross-sections are needed.</p>
+       <p>Each branch has an aspect ratio of <b>${fmt(c.l / (2 * c.r), 1)}</b> (length/diameter) against <b>${fmt(c.L / (2 * c.R), 1)}</b> for the trunk. Per unit length, a branch has ${fmt(c.R / c.r, 0)} times the wall area per volume of the trunk, so wetting and nucleation on the walls weigh far more there.</p>
+       <p>As a mold cavity open at the top, the wetted area is <b>${fmt(wetted, 0)} nm²</b> (total minus the open face). Filling one structure with cobalt (Co²⁺ + 2e⁻ → Co, ρ = 8.90 g/cm³, M = 58.93 g/mol, 100% efficiency) takes <b>${sci(c.Q)} C</b>.</p>`;
+  }
+
+  // ---------- 3D ----------
+  const canvas = $('scene');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 5000);
+  const controls = new THREE.OrbitControls(camera, canvas);
+  controls.enableDamping = true; controls.dampingFactor = 0.08;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 0.85));
+  const key = new THREE.DirectionalLight(0xffffff, 0.75); key.position.set(80, 120, 140); scene.add(key);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.3); fill.position.set(-120, -40, -60); scene.add(fill);
+
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const trunkMat = new THREE.MeshStandardMaterial({ roughness: 0.45, metalness: 0.15, transparent: true, opacity: 0.92 });
+  const branchMat = new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.1 });
+  const edgeMat = new THREE.LineBasicMaterial({ transparent: true, opacity: 0.35 });
+  function colors() {
+    trunkMat.color.set(css('--trunk')); branchMat.color.set(css('--branch'));
+    edgeMat.color.set(css('--ink'));
+    if (gridHelper) { gridHelper.material.color.set(css('--grid')); }
+  }
+
+  let group = null, gridHelper = null, cur = null, view = '3d';
+  function build(c) {
+    if (group) { scene.remove(group); group.traverse(o => o.geometry && o.geometry.dispose()); }
+    group = new THREE.Group();
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(c.R, c.R, c.L, 96, 1), trunkMat);
+    group.add(trunk);
+    [c.L / 2, -c.L / 2].forEach(y => {
+      const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(
+        Array.from({ length: 96 }, (_, i) => new THREE.Vector3(c.R * Math.cos(i / 96 * 2 * Math.PI), y, c.R * Math.sin(i / 96 * 2 * Math.PI)))), edgeMat);
+      group.add(ring);
+    });
+    const inset = c.R - Math.sqrt(Math.max(c.R * c.R - c.r * c.r, 0)) + 0.02;
+    LEVELS.forEach(f => {
+      const y = c.L / 2 - f * c.L;
+      for (let k = 0; k < PER_LEVEL; k++) {
+        const len = c.l + inset;
+        const g = new THREE.CylinderGeometry(c.r, c.r, len, 32, 1);
+        g.rotateZ(-Math.PI / 2);
+        g.translate(c.R - inset + len / 2, 0, 0);
+        const m = new THREE.Mesh(g, branchMat);
+        m.rotation.y = k * Math.PI / 2;
+        m.position.y = y;
+        group.add(m);
+      }
+    });
+    scene.add(group);
+    if (gridHelper) scene.remove(gridHelper);
+    const size = Math.ceil((c.R + c.l) * 4 / 10) * 10;
+    gridHelper = new THREE.GridHelper(size, size / 5);
+    gridHelper.position.y = -c.L / 2 - 0.01;
+    scene.add(gridHelper);
+    colors();
+  }
+
+  function setView(v, c = cur) {
+    view = v;
+    ['3d', 'front', 'top', 'tip'].forEach(k => $('v' + k).setAttribute('aria-pressed', String(k === v)));
+    const D = Math.max(c.L, 2 * (c.R + c.l));
+    controls.target.set(0, 0, 0);
+    if (v === '3d') camera.position.set(D * 1.35, D * 0.75, D * 1.55);
+    if (v === 'front') camera.position.set(0, 0.0001, D * 2.1);
+    if (v === 'top') camera.position.set(0.0001, D * 2.0, 0.0001);
+    if (v === 'tip') {
+      const y = c.L / 2 - LEVELS[0] * c.L, a = 0;
+      const tx = (c.R + c.l / 2) * Math.cos(a), tz = -(c.R + c.l / 2) * Math.sin(a);
+      controls.target.set(tx, y, tz);
+      camera.position.set(tx + c.l * 3.2, y + c.l * 2.2, tz + c.l * 3.6);
+    }
+    camera.up.set(v === 'top' ? 0 : 0, v === 'top' ? 0 : 1, v === 'top' ? -1 : 0);
+    controls.update();
+  }
+
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+
+  function scaleBar() {
+    // nm per pixel at the target distance
+    const dist = camera.position.distanceTo(controls.target);
+    const hView = 2 * dist * Math.tan(camera.fov * Math.PI / 360);
+    const nmPerPx = hView / canvas.clientHeight;
+    const steps = [0.5, 1, 2, 5, 10, 20, 50, 100, 200];
+    const len = steps.find(s => s / nmPerPx >= 50) || 200;
+    $('scaleLabel').textContent = len + ' nm';
+    $('scaleBar').style.width = Math.round(len / nmPerPx) + 'px';
+  }
+
+  function loop() { controls.update(); renderer.render(scene, camera); scaleBar(); requestAnimationFrame(loop); }
+
+  function update(resetView) {
+    cur = compute(read());
+    render(cur); build(cur);
+    if (resetView) setView(view);
+  }
+
+  ['Dt', 'Lt', 'Db', 'Lb'].forEach(id => $(id).addEventListener('input', () => update(true)));
+  [['v3d', '3d'], ['vfront', 'front'], ['vtop', 'top'], ['vtip', 'tip']].forEach(([id, v]) => $(id).addEventListener('click', () => setView(v)));
+  new ResizeObserver(resize).observe(canvas);
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', colors); } catch (e) {}
+  new MutationObserver(colors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  update(false); resize(); setView('3d'); loop();
+})();
+</script>
+</body>
+</html>
